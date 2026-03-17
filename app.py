@@ -277,63 +277,76 @@ html, body, [class*="css"] {
 .stSlider [data-testid="stSlider"] > div > div > div { background: var(--dark-blue) !important; }
 .stSlider [data-testid="stSlider"] > div > div > div > div { background: var(--gold) !important; }
 
-/* Number input text field */
-[data-testid="stNumberInput"] input,
+/* ── Number Input: complete restyle ── */
+/* The wrapper div */
+[data-testid="stNumberInput"] > div {
+    display: flex !important;
+    border: 1.5px solid rgba(255,215,0,0.35) !important;
+    border-radius: 6px !important;
+    overflow: hidden !important;
+    background: #0d1f38 !important;
+}
+/* The text input field itself */
+[data-testid="stNumberInput"] input {
+    background: #0d1f38 !important;
+    color: #e6f1ff !important;
+    border: none !important;
+    border-right: 1px solid rgba(255,215,0,0.2) !important;
+    border-radius: 0 !important;
+    flex: 1 !important;
+    padding: 0.4rem 0.6rem !important;
+    font-family: "JetBrains Mono", monospace !important;
+    font-size: 0.95rem !important;
+}
 [data-testid="stTextInput"] input {
     background: #0d1f38 !important;
     color: #e6f1ff !important;
-    border: 1px solid rgba(0,51,102,0.7) !important;
-    border-radius: 4px 0 0 4px !important;
+    border: 1.5px solid rgba(255,215,0,0.35) !important;
+    border-radius: 6px !important;
 }
-
-/* Stepper button container - give it a visible contrasting background */
-[data-testid="stNumberInput"] [data-testid="stNumberInputStepDown"],
-[data-testid="stNumberInput"] [data-testid="stNumberInputStepUp"] {
-    background: #003f7a !important;
-    border: none !important;
-    border-left: 1px solid rgba(255,215,0,0.3) !important;
+/* BOTH stepper buttons — nuclear approach covering all Streamlit versions */
+[data-testid="stNumberInput"] button,
+[data-testid="stNumberInput"] > div > button,
+[data-testid="stNumberInputStepDown"],
+[data-testid="stNumberInputStepUp"],
+div[data-testid="stNumberInput"] button:first-of-type,
+div[data-testid="stNumberInput"] button:last-of-type,
+div[data-testid="stNumberInput"] button:nth-of-type(1),
+div[data-testid="stNumberInput"] button:nth-of-type(2) {
+    background: #1a3a6b !important;
     color: #FFD700 !important;
-    width: 32px !important;
-    min-width: 32px !important;
+    border: none !important;
+    border-left: 1px solid rgba(255,215,0,0.2) !important;
+    border-radius: 0 !important;
+    min-width: 34px !important;
+    width: 34px !important;
+    padding: 0 !important;
     cursor: pointer !important;
-    transition: background 0.15s !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: background 0.15s, color 0.15s !important;
+    flex-shrink: 0 !important;
 }
-[data-testid="stNumberInput"] [data-testid="stNumberInputStepDown"]:hover,
-[data-testid="stNumberInput"] [data-testid="stNumberInputStepUp"]:hover {
-    background: #0055a5 !important;
+[data-testid="stNumberInput"] button:hover,
+[data-testid="stNumberInput"] > div > button:hover,
+[data-testid="stNumberInputStepDown"]:hover,
+[data-testid="stNumberInputStepUp"]:hover {
+    background: #0055b3 !important;
+    color: #ffffff !important;
 }
-/* SVG icons inside the stepper buttons */
-[data-testid="stNumberInput"] [data-testid="stNumberInputStepDown"] svg,
-[data-testid="stNumberInput"] [data-testid="stNumberInputStepUp"] svg {
-    fill: #FFD700 !important;
-    stroke: #FFD700 !important;
-}
-/* Also target by button role as fallback */
-[data-testid="stNumberInput"] button[kind="secondary"] {
-    background: #003f7a !important;
-    color: #FFD700 !important;
-    border: none !important;
-    border-left: 1px solid rgba(255,215,0,0.3) !important;
-}
-[data-testid="stNumberInput"] button[kind="secondary"] svg {
-    fill: #FFD700 !important;
-    stroke: #FFD700 !important;
-}
-/* Broad fallback: any button inside number input */
-[data-testid="stNumberInput"] button {
-    background: #003f7a !important;
-    color: #FFD700 !important;
-    border-left: 1px solid rgba(255,215,0,0.25) !important;
-}
-[data-testid="stNumberInput"] button:hover {
-    background: #005299 !important;
-}
-[data-testid="stNumberInput"] button svg,
-[data-testid="stNumberInput"] button p,
-[data-testid="stNumberInput"] button span {
+/* Force all SVG/icon content inside buttons to gold */
+[data-testid="stNumberInput"] button *,
+[data-testid="stNumberInputStepDown"] *,
+[data-testid="stNumberInputStepUp"] * {
     color: #FFD700 !important;
     fill: #FFD700 !important;
     stroke: #FFD700 !important;
+}
+[data-testid="stNumberInput"] button:hover * {
+    color: #ffffff !important;
+    fill: #ffffff !important;
+    stroke: #ffffff !important;
 }
 
 .stSelectbox > div > div {
@@ -427,6 +440,79 @@ details[open] summary { color: var(--gold); }
 ::-webkit-scrollbar-thumb:hover { background: var(--gold); }
 </style>
 """, unsafe_allow_html=True)
+
+# ── JavaScript injection: guarantee number input button visibility ──────────
+# CSS alone can be defeated by Streamlit's scoped styles; JS is bulletproof
+st.components.v1.html("""
+<script>
+(function fixNumberInputButtons() {
+    function applyFix() {
+        // Find ALL number input button elements in the sidebar and main area
+        const allBtns = document.querySelectorAll(
+            '[data-testid="stNumberInput"] button, ' +
+            '[data-testid="stNumberInputStepDown"], ' +
+            '[data-testid="stNumberInputStepUp"]'
+        );
+        allBtns.forEach(function(btn) {
+            btn.style.setProperty('background', '#1a3a6b', 'important');
+            btn.style.setProperty('color', '#FFD700', 'important');
+            btn.style.setProperty('border-left', '1px solid rgba(255,215,0,0.3)', 'important');
+            btn.style.setProperty('min-width', '34px', 'important');
+            btn.style.setProperty('width', '34px', 'important');
+            btn.style.setProperty('display', 'flex', 'important');
+            btn.style.setProperty('align-items', 'center', 'important');
+            btn.style.setProperty('justify-content', 'center', 'important');
+            btn.style.setProperty('cursor', 'pointer', 'important');
+            btn.style.setProperty('border-radius', '0', 'important');
+            btn.style.setProperty('border-top', 'none', 'important');
+            btn.style.setProperty('border-bottom', 'none', 'important');
+            btn.style.setProperty('border-right', 'none', 'important');
+            // Fix all child SVGs and spans
+            btn.querySelectorAll('svg, path, polyline, line, circle').forEach(function(el) {
+                el.style.setProperty('fill', '#FFD700', 'important');
+                el.style.setProperty('stroke', '#FFD700', 'important');
+                el.style.setProperty('color', '#FFD700', 'important');
+            });
+            // Hover effect
+            btn.addEventListener('mouseenter', function() {
+                this.style.setProperty('background', '#0055b3', 'important');
+                this.querySelectorAll('svg, path, polyline, line, circle').forEach(function(el) {
+                    el.style.setProperty('fill', '#ffffff', 'important');
+                    el.style.setProperty('stroke', '#ffffff', 'important');
+                });
+            });
+            btn.addEventListener('mouseleave', function() {
+                this.style.setProperty('background', '#1a3a6b', 'important');
+                this.querySelectorAll('svg, path, polyline, line, circle').forEach(function(el) {
+                    el.style.setProperty('fill', '#FFD700', 'important');
+                    el.style.setProperty('stroke', '#FFD700', 'important');
+                });
+            });
+        });
+
+        // Also fix the number input wrapper borders
+        document.querySelectorAll('[data-testid="stNumberInput"] > div').forEach(function(wrap) {
+            wrap.style.setProperty('border', '1.5px solid rgba(255,215,0,0.35)', 'important');
+            wrap.style.setProperty('border-radius', '6px', 'important');
+            wrap.style.setProperty('overflow', 'hidden', 'important');
+            wrap.style.setProperty('display', 'flex', 'important');
+        });
+    }
+
+    // Run immediately
+    applyFix();
+
+    // Re-run on any DOM changes (Streamlit re-renders widgets dynamically)
+    const observer = new MutationObserver(function() { applyFix(); });
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    // Also run after a short delay to catch late renders
+    setTimeout(applyFix, 500);
+    setTimeout(applyFix, 1500);
+    setTimeout(applyFix, 3000);
+})();
+</script>
+""", height=0)
 
 
 # ── PLOTLY THEME ──────────────────────────────────────────────────────────────
