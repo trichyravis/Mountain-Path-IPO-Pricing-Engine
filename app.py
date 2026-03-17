@@ -1,3 +1,4 @@
+
 """
 THE MOUNTAIN PATH — WORLD OF FINANCE
 Primary Market Equity Pricing Model
@@ -58,7 +59,9 @@ html, body, [class*="css"] {
     background: linear-gradient(180deg, #001f3f 0%, #002b55 100%) !important;
     border-right: 2px solid var(--gold-border);
 }
-[data-testid="stSidebar"] * { color: var(--text) !important; }
+/* Sidebar text - do NOT use wildcard * which kills button icon colors */
+[data-testid="stSidebar"] label { color: var(--text) !important; }
+[data-testid="stSidebar"] p { color: var(--text) !important; }
 [data-testid="stSidebar"] .stSelectbox label,
 [data-testid="stSidebar"] .stSlider label,
 [data-testid="stSidebar"] .stNumberInput label { color: var(--light-blue) !important; font-size: 0.82rem !important; font-weight: 600 !important; letter-spacing: 0.03em; }
@@ -273,12 +276,66 @@ html, body, [class*="css"] {
 /* ── Slider, selectbox, number input ── */
 .stSlider [data-testid="stSlider"] > div > div > div { background: var(--dark-blue) !important; }
 .stSlider [data-testid="stSlider"] > div > div > div > div { background: var(--gold) !important; }
-[data-testid="stNumberInput"] input, [data-testid="stTextInput"] input {
-    background: var(--card-bg2) !important;
-    color: var(--text) !important;
-    border: 1px solid var(--border) !important;
-    border-radius: 6px;
+
+/* Number input text field */
+[data-testid="stNumberInput"] input,
+[data-testid="stTextInput"] input {
+    background: #0d1f38 !important;
+    color: #e6f1ff !important;
+    border: 1px solid rgba(0,51,102,0.7) !important;
+    border-radius: 4px 0 0 4px !important;
 }
+
+/* Stepper button container - give it a visible contrasting background */
+[data-testid="stNumberInput"] [data-testid="stNumberInputStepDown"],
+[data-testid="stNumberInput"] [data-testid="stNumberInputStepUp"] {
+    background: #003f7a !important;
+    border: none !important;
+    border-left: 1px solid rgba(255,215,0,0.3) !important;
+    color: #FFD700 !important;
+    width: 32px !important;
+    min-width: 32px !important;
+    cursor: pointer !important;
+    transition: background 0.15s !important;
+}
+[data-testid="stNumberInput"] [data-testid="stNumberInputStepDown"]:hover,
+[data-testid="stNumberInput"] [data-testid="stNumberInputStepUp"]:hover {
+    background: #0055a5 !important;
+}
+/* SVG icons inside the stepper buttons */
+[data-testid="stNumberInput"] [data-testid="stNumberInputStepDown"] svg,
+[data-testid="stNumberInput"] [data-testid="stNumberInputStepUp"] svg {
+    fill: #FFD700 !important;
+    stroke: #FFD700 !important;
+}
+/* Also target by button role as fallback */
+[data-testid="stNumberInput"] button[kind="secondary"] {
+    background: #003f7a !important;
+    color: #FFD700 !important;
+    border: none !important;
+    border-left: 1px solid rgba(255,215,0,0.3) !important;
+}
+[data-testid="stNumberInput"] button[kind="secondary"] svg {
+    fill: #FFD700 !important;
+    stroke: #FFD700 !important;
+}
+/* Broad fallback: any button inside number input */
+[data-testid="stNumberInput"] button {
+    background: #003f7a !important;
+    color: #FFD700 !important;
+    border-left: 1px solid rgba(255,215,0,0.25) !important;
+}
+[data-testid="stNumberInput"] button:hover {
+    background: #005299 !important;
+}
+[data-testid="stNumberInput"] button svg,
+[data-testid="stNumberInput"] button p,
+[data-testid="stNumberInput"] button span {
+    color: #FFD700 !important;
+    fill: #FFD700 !important;
+    stroke: #FFD700 !important;
+}
+
 .stSelectbox > div > div {
     background: var(--card-bg2) !important;
     color: var(--text) !important;
