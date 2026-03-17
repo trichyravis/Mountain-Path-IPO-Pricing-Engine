@@ -1087,7 +1087,7 @@ with tabs[1]:
         ('Net Proceeds to Company', proc_bb['net'], '★ Bottom Line'),
     ]
     proc_df_disp = pd.DataFrame(proc_rows, columns=['Item', f'Amount ({curr_sym})', 'Notes'])
-    proc_df_disp['Amount ($)'] = proc_df_disp['Amount ($)'].apply(lambda x: f"{curr_sym}{x:,.0f}")
+    proc_df_disp[f'Amount ({curr_sym})'] = proc_df_disp[f'Amount ({curr_sym})'].apply(lambda x: f"{curr_sym}{x:,.0f}")
     st.dataframe(proc_df_disp, use_container_width=True, hide_index=True)
 
     st.markdown(f"""
@@ -1230,7 +1230,7 @@ with tabs[2]:
         ('Total Refunds', -total_refund_fp, f"{refund_pct_fp:.2f}% of application money"),
     ]
     proc_df_fp_disp = pd.DataFrame(proc_rows_fp, columns=['Item', f'Amount ({curr_sym})', 'Notes'])
-    proc_df_fp_disp['Amount ($)'] = proc_df_fp_disp['Amount ($)'].apply(lambda x: f"{curr_sym}{x:,.0f}")
+    proc_df_fp_disp[f'Amount ({curr_sym})'] = proc_df_fp_disp[f'Amount ({curr_sym})'].apply(lambda x: f"{curr_sym}{x:,.0f}")
     st.dataframe(proc_df_fp_disp, use_container_width=True, hide_index=True)
 
     st.markdown(f"""
