@@ -858,7 +858,7 @@ with tabs[0]:
                 showscale=False
             ),
             name='Demand per Level',
-            hovertemplate=f'Price: {curr_sym}%{{y}}<br>Demand: %{x:,.0f}<extra></extra>'
+            hovertemplate=f'Price: {curr_sym}%{{y}}<br>Demand: %{{x:,.0f}}<extra></extra>'
         ))
         fig.add_vline(x=ipo_shares, line_dash='dash',
                       line_color='#FFD700', annotation_text=f'IPO Supply: {fmt_n(ipo_shares)}',
@@ -912,7 +912,7 @@ with tabs[0]:
             marker=dict(color='#ADD8E6', size=8),
             fill='tozeroy', fillcolor='rgba(173,216,230,0.07)',
             name='Cumulative Demand',
-            hovertemplate='Price: $%{x}<br>Cum. Demand: %{y:,.0f}<extra></extra>'
+            hovertemplate=f'Price: {curr_sym}%{{x}}<br>Cum. Demand: %{{y:,.0f}}<extra></extra>'
         ))
         fig3.add_hline(y=ipo_shares, line_dash='dash', line_color='#FFD700',
                        annotation_text=f'IPO Supply', annotation_font_color='#FFD700')
@@ -1199,7 +1199,7 @@ with tabs[2]:
             marker_colors=['#003366', '#dc3545'],
             marker_line=dict(color='#0a1628', width=2),
             textinfo='label+percent',
-            hovertemplate='%{label}: $%{value:,.0f}<extra></extra>'
+            hovertemplate=f'%{{label}}: {curr_sym}%{{value:,.0f}}<extra></extra>'
         ))
         fig_pie.add_annotation(
             text=f"{refund_pct_fp:.1f}%<br>refunded",
