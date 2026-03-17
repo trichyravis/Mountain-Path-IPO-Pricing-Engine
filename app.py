@@ -562,27 +562,41 @@ with st.sidebar:
     <hr style="border-color:rgba(255,215,0,0.25); margin:0 0 1rem 0;">
     """, unsafe_allow_html=True)
 
+    st.markdown('<div style="font-size:0.78rem; font-weight:700; color:#FFD700; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:0.6rem;">Currency</div>', unsafe_allow_html=True)
+    currency_options = {
+        "₹ INR — Indian Rupee":   ("₹", "INR", "Cr",  1e7,  1e5),
+        "$ USD — US Dollar":       ("$", "USD", "M",   1e6,  1e3),
+        "£ GBP — British Pound":   ("£", "GBP", "M",   1e6,  1e3),
+        "€ EUR — Euro":            ("€", "EUR", "M",   1e6,  1e3),
+        "¥ JPY — Japanese Yen":    ("¥", "JPY", "M",   1e6,  1e3),
+        "AED — UAE Dirham":        ("AED", "AED", "M", 1e6,  1e3),
+        "SGD — Singapore Dollar":  ("SGD", "SGD", "M", 1e6,  1e3),
+    }
+    currency_choice = st.selectbox("Select Currency", list(currency_options.keys()), index=0)
+    curr_sym, curr_code, curr_large_suffix, curr_large_div, curr_small_div = currency_options[currency_choice]
+
+    st.markdown('<hr style="border-color:rgba(0,51,102,0.5); margin:0.6rem 0 0.8rem 0;">', unsafe_allow_html=True)
     st.markdown('<div style="font-size:0.78rem; font-weight:700; color:#FFD700; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:0.6rem;">Company Details</div>', unsafe_allow_html=True)
     company_name = st.text_input("Company Name", value="ABC Technologies Ltd.")
     pre_ipo_shares = st.number_input("Pre-IPO Shares Outstanding", value=100_000_000, step=1_000_000, format="%d")
     ipo_shares     = st.number_input("Shares Offered in IPO", value=25_000_000, step=500_000, format="%d")
-    face_value     = st.number_input("Face Value per Share (₹/$)", value=10.0, step=1.0)
+    face_value     = st.number_input(f"Face Value per Share ({curr_sym})", value=10.0, step=1.0)
 
     st.markdown('<hr style="border-color:rgba(0,51,102,0.5); margin:1rem 0;">', unsafe_allow_html=True)
     st.markdown('<div style="font-size:0.78rem; font-weight:700; color:#FFD700; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:0.6rem;">Book Building</div>', unsafe_allow_html=True)
-    floor_price = st.number_input("Floor Price (₹/$)", value=250.0, step=5.0)
-    cap_price   = st.number_input("Cap Price (₹/$)", value=300.0, step=5.0)
+    floor_price = st.number_input(f"Floor Price ({curr_sym})", value=250.0, step=5.0)
+    cap_price   = st.number_input(f"Cap Price ({curr_sym})", value=300.0, step=5.0)
 
     st.markdown('<hr style="border-color:rgba(0,51,102,0.5); margin:1rem 0;">', unsafe_allow_html=True)
     st.markdown('<div style="font-size:0.78rem; font-weight:700; color:#FFD700; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:0.6rem;">Fixed Price</div>', unsafe_allow_html=True)
-    fixed_price = st.number_input("Fixed Offer Price (₹/$)", value=275.0, step=5.0)
+    fixed_price = st.number_input(f"Fixed Offer Price ({curr_sym})", value=275.0, step=5.0)
 
     st.markdown('<hr style="border-color:rgba(0,51,102,0.5); margin:1rem 0;">', unsafe_allow_html=True)
     st.markdown('<div style="font-size:0.78rem; font-weight:700; color:#FFD700; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:0.6rem;">Issuance Costs</div>', unsafe_allow_html=True)
     underwriting_pct  = st.slider("Underwriting Fee (%)", 0.5, 10.0, 5.0, 0.25)
-    legal_cost        = st.number_input("Legal & Regulatory (₹/$)", value=2_500_000, step=100_000, format="%d")
-    marketing_cost    = st.number_input("Marketing & Roadshow (₹/$)", value=1_500_000, step=100_000, format="%d")
-    listing_fee       = st.number_input("Listing Fees (₹/$)", value=500_000, step=50_000, format="%d")
+    legal_cost        = st.number_input(f"Legal & Regulatory ({curr_sym})", value=2_500_000, step=100_000, format="%d")
+    marketing_cost    = st.number_input(f"Marketing & Roadshow ({curr_sym})", value=1_500_000, step=100_000, format="%d")
+    listing_fee       = st.number_input(f"Listing Fees ({curr_sym})", value=500_000, step=50_000, format="%d")
 
     st.markdown('<hr style="border-color:rgba(0,51,102,0.5); margin:1rem 0;">', unsafe_allow_html=True)
     st.markdown('<div style="font-size:0.78rem; font-weight:700; color:#FFD700; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:0.6rem;">Investor Allocation (%)</div>', unsafe_allow_html=True)
@@ -751,20 +765,38 @@ with tabs[0]:
     st.markdown('<div class="section-header">📊 Executive Summary Dashboard</div>', unsafe_allow_html=True)
 
     # ── Top metrics row ───────────────────────────────────────────────────────
-    def fmt_m(v): return f"${v/1e9:.2f}B" if v >= 1e9 else f"${v/1e6:.1f}M"
+    # ── Currency-aware format helpers ──────────────────────────────────────
+    def fmt_m(v):
+        """Format large monetary value using selected currency."""
+        if curr_code == "INR":
+            if abs(v) >= 1e7:
+                return f"{curr_sym}{v/1e7:.2f}Cr"
+            elif abs(v) >= 1e5:
+                return f"{curr_sym}{v/1e5:.1f}L"
+            else:
+                return f"{curr_sym}{v:,.0f}"
+        else:
+            if abs(v) >= 1e9:
+                return f"{curr_sym}{v/1e9:.2f}B"
+            elif abs(v) >= 1e6:
+                return f"{curr_sym}{v/1e6:.1f}M"
+            else:
+                return f"{curr_sym}{v:,.0f}"
     def fmt_n(v): return f"{v:,.0f}"
+    def fmt_c(v): return f"{curr_sym}{v:,.2f}"          # price display
+    def fmt_c0(v): return f"{curr_sym}{v:,.0f}"         # whole number price
 
     st.markdown(f"""
     <div class="metric-row">
       <div class="metric-card">
         <div class="metric-label">BB Cut-Off Price</div>
-        <div class="metric-value">${cutoff_price:,.0f}</div>
-        <div class="metric-sub">vs Floor ${floor_price:,.0f} / Cap ${cap_price:,.0f}</div>
+        <div class="metric-value">{fmt_c0(cutoff_price)}</div>
+        <div class="metric-sub">vs Floor {fmt_c0(floor_price)} / Cap {fmt_c0(cap_price)}</div>
       </div>
       <div class="metric-card">
         <div class="metric-label">Fixed Offer Price</div>
-        <div class="metric-value" style="color:#ADD8E6">${fixed_price:,.0f}</div>
-        <div class="metric-sub">Premium ${share_prem_fp:,.0f} ({prem_pct_fp:,.0f}% over FV)</div>
+        <div class="metric-value" style="color:#ADD8E6">{fmt_c0(fixed_price)}</div>
+        <div class="metric-sub">Premium {fmt_c0(share_prem_fp)} ({prem_pct_fp:,.0f}% over FV)</div>
       </div>
       <div class="metric-card green">
         <div class="metric-label">BB Net Proceeds</div>
@@ -805,8 +837,8 @@ with tabs[0]:
       </div>
       <div class="metric-card">
         <div class="metric-label">Weighted Avg Bid</div>
-        <div class="metric-value" style="color:#fd7e14">${wabp:,.2f}</div>
-        <div class="metric-sub">vs Cut-off ${cutoff_price:,.0f}</div>
+        <div class="metric-value" style="color:#fd7e14">{fmt_c(wabp)}</div>
+        <div class="metric-sub">vs Cut-off {fmt_c0(cutoff_price)}</div>
       </div>
     </div>
     """, unsafe_allow_html=True)
@@ -826,7 +858,7 @@ with tabs[0]:
                 showscale=False
             ),
             name='Demand per Level',
-            hovertemplate='Price: $%{y}<br>Demand: %{x:,.0f}<extra></extra>'
+            hovertemplate=f'Price: {curr_sym}%{{y}}<br>Demand: %{x:,.0f}<extra></extra>'
         ))
         fig.add_vline(x=ipo_shares, line_dash='dash',
                       line_color='#FFD700', annotation_text=f'IPO Supply: {fmt_n(ipo_shares)}',
@@ -834,7 +866,7 @@ with tabs[0]:
         # highlight cutoff
         fig.add_hrect(y0=cutoff_price-0.5, y1=cutoff_price+0.5,
                       fillcolor='rgba(255,215,0,0.15)', line_color='#FFD700',
-                      annotation_text=f'Cut-off ${cutoff_price}', annotation_position='right',
+                      annotation_text=f'Cut-off {fmt_c0(cutoff_price)}', annotation_position='right',
                       annotation_font_color='#FFD700')
         fig.update_layout(**PLOT_LAYOUT,
             title='Demand at Each Bid Price Level',
@@ -855,16 +887,16 @@ with tabs[0]:
         fig2.add_trace(go.Bar(name='Book Building',
             x=categories, y=[v/1e6 for v in bb_vals],
             marker_color=['#0066cc','#dc3545','#dc3545','#dc3545','#dc3545','#28a745'],
-            hovertemplate='%{x}: $%{y:.1f}M<extra>BB</extra>'))
+            hovertemplate=f'%{{x}}: {curr_sym}%{{y:.1f}}M<extra>BB</extra>'))
         fig2.add_trace(go.Bar(name='Fixed Price',
             x=categories, y=[v/1e6 for v in fp_vals],
             marker_color=['rgba(0,102,204,0.45)','rgba(220,53,69,0.45)',
                           'rgba(220,53,69,0.45)','rgba(220,53,69,0.45)',
                           'rgba(220,53,69,0.45)','rgba(40,167,69,0.45)'],
-            hovertemplate='%{x}: $%{y:.1f}M<extra>FP</extra>'))
+            hovertemplate=f'%{{x}}: {curr_sym}%{{y:.1f}}M<extra>FP</extra>'))
         fig2.update_layout(**PLOT_LAYOUT,
-            title='Proceeds Comparison (US$M)',
-            yaxis_title='Amount ($M)', barmode='group', height=320)
+            title=f"Proceeds Comparison ({curr_sym}M)",
+            yaxis_title=f"Amount ({curr_sym}M)", barmode='group', height=320)
         st.plotly_chart(fig2, use_container_width=True)
 
     # ── Subscription chart ────────────────────────────────────────────────────
@@ -885,7 +917,7 @@ with tabs[0]:
         fig3.add_hline(y=ipo_shares, line_dash='dash', line_color='#FFD700',
                        annotation_text=f'IPO Supply', annotation_font_color='#FFD700')
         fig3.add_vline(x=cutoff_price, line_dash='dot', line_color='#FFD700',
-                       annotation_text=f'Cut-off ${cutoff_price}', annotation_font_color='#FFD700')
+                       annotation_text=f'Cut-off {fmt_c0(cutoff_price)}', annotation_font_color='#FFD700')
         fig3.update_layout(**PLOT_LAYOUT,
             title='Cumulative Demand Curve (Book Building)',
             xaxis_title='Bid Price ($)', yaxis_title='Cumulative Demand',
@@ -902,14 +934,14 @@ with tabs[0]:
         fig4.add_trace(go.Bar(name='Book Building', x=val_cats, y=bb_vals2,
                                marker_color='#003366',
                                marker_line=dict(color='#FFD700', width=1.5),
-                               hovertemplate='%{x}: $%{y:.2f}B<extra>BB</extra>'))
+                               hovertemplate=f'%{{x}}: {curr_sym}%{{y:.2f}}B<extra>BB</extra>'))
         fig4.add_trace(go.Bar(name='Fixed Price', x=val_cats, y=fp_vals2,
                                marker_color='rgba(0,51,102,0.4)',
                                marker_line=dict(color='#ADD8E6', width=1),
-                               hovertemplate='%{x}: $%{y:.2f}B<extra>FP</extra>'))
+                               hovertemplate=f'%{{x}}: {curr_sym}%{{y:.2f}}B<extra>FP</extra>'))
         fig4.update_layout(**PLOT_LAYOUT,
-            title='Valuation Metrics ($B)',
-            yaxis_title='Amount ($B)', barmode='group', height=300)
+            title=f"Valuation Metrics ({curr_sym}B)",
+            yaxis_title=f"Amount ({curr_sym}B)", barmode='group', height=300)
         st.plotly_chart(fig4, use_container_width=True)
 
 
@@ -922,7 +954,7 @@ with tabs[1]:
     st.markdown(f"""
     <div class="def-box">
         <strong style="color:#ADD8E6">Book Building</strong> is a price discovery mechanism where the issuer sets a price band
-        (<strong>${floor_price:,.0f} – ${cap_price:,.0f}</strong>) and investors submit bids specifying price and quantity.
+        (<strong>{fmt_c0(floor_price)} – {fmt_c0(cap_price)}</strong>) and investors submit bids specifying price and quantity.
         The cut-off price is the highest price at which cumulative demand ≥ total shares offered
         (<strong>{fmt_n(ipo_shares)} shares</strong>).
     </div>
@@ -933,7 +965,7 @@ with tabs[1]:
     # Style and display demand table
     def style_demand(df):
         display = df.copy()
-        display['Bid Price']    = display['Bid Price'].apply(lambda x: f"${x:,.2f}")
+        display['Bid Price']    = display['Bid Price'].apply(lambda x: f"{fmt_c(x)}")
         display['No. of Bids']  = display['No. of Bids'].apply(lambda x: f"{x:,.0f}")
         display['Shares per Bid']  = display['Shares per Bid'].apply(lambda x: f"{x:,.0f}")
         display['Total Demanded']  = display['Total Demanded'].apply(lambda x: f"{x:,.0f}")
@@ -957,10 +989,10 @@ with tabs[1]:
 
     st.markdown(f"""
     <div class="example-box">
-        <strong>✦ Cut-Off Price = ${cutoff_price:,.0f}</strong> &nbsp;—&nbsp;
+        <strong>✦ Cut-Off Price = {fmt_c0(cutoff_price)}</strong> &nbsp;—&nbsp;
         First price (from top) where cumulative demand ({fmt_n(int(demand_df.loc[cutoff_idx,'Cumulative Demand']))} shares)
-        ≥ IPO supply ({fmt_n(ipo_shares)} shares). All bids at or above ${cutoff_price:,.0f} receive allotment.
-        <br><strong>Weighted Average Bid Price = ${wabp:,.2f}</strong> &nbsp;—&nbsp;
+        ≥ IPO supply ({fmt_n(ipo_shares)} shares). All bids at or above {fmt_c0(cutoff_price)} receive allotment.
+        <br><strong>Weighted Average Bid Price = {fmt_c(wabp)}</strong> &nbsp;—&nbsp;
         Cut-off > WABP confirms pricing at the <em>upper end of investor appetite</em>.
     </div>
     """, unsafe_allow_html=True)
@@ -971,19 +1003,19 @@ with tabs[1]:
         x=demand_df['Bid Price'], y=demand_df['Total Demanded'],
         name='Total Demanded', marker_color='#003366',
         marker_line=dict(color='#004d80', width=0.5),
-        hovertemplate='$%{x}: %{y:,.0f} shares<extra></extra>'
+        hovertemplate=f'{curr_sym}%{{x}}: %{{y:,.0f}} shares<extra></extra>'
     ), secondary_y=False)
     fig_bb.add_trace(go.Scatter(
         x=demand_df['Bid Price'], y=demand_df['Demand Multiple'],
         name='Demand Multiple', mode='lines+markers',
         line=dict(color='#FFD700', width=2.5),
         marker=dict(color='#FFD700', size=8),
-        hovertemplate='$%{x}: %{y:.2f}x<extra></extra>'
+        hovertemplate=f'{curr_sym}%{{x}}: %{{y:.2f}}x<extra></extra>'
     ), secondary_y=True)
     fig_bb.add_vline(x=cutoff_price, line_dash='dash', line_color='#ADD8E6',
-                     annotation_text=f'Cut-off ${cutoff_price}', annotation_font_color='#ADD8E6')
+                     annotation_text=f'Cut-off {fmt_c0(cutoff_price)}', annotation_font_color='#ADD8E6')
     fig_bb.add_vline(x=wabp, line_dash='dot', line_color='#fd7e14',
-                     annotation_text=f'WABP ${wabp:.1f}', annotation_font_color='#fd7e14')
+                     annotation_text=f'WABP {fmt_c(wabp)}', annotation_font_color='#fd7e14')
     fig_bb.update_layout(**PLOT_LAYOUT,
         title='Demand Distribution & Demand Multiple at Each Price Level',
         xaxis_title='Bid Price ($)', height=340)
@@ -1045,7 +1077,7 @@ with tabs[1]:
     st.markdown('<div class="section-header" style="font-size:1rem">💰 IPO Proceeds Statement</div>', unsafe_allow_html=True)
 
     proc_rows = [
-        ('Gross Proceeds', proc_bb['gross'], f"{fmt_n(ipo_shares)} × ${cutoff_price:,.0f}"),
+        ('Gross Proceeds', proc_bb['gross'], f"{fmt_n(ipo_shares)} × {fmt_c0(cutoff_price)}"),
         ('Less: Underwriting Fees', -proc_bb['uw_fee'], f"{underwriting_pct}% of Gross"),
         ('Less: Legal & Regulatory', -proc_bb['legal'], 'Fixed Cost'),
         ('Less: Marketing & Roadshow', -proc_bb['mktg'], 'Fixed Cost'),
@@ -1053,8 +1085,8 @@ with tabs[1]:
         ('Total Issuance Costs', -proc_bb['total_cost'], f"{proc_bb['cost_pct']:.2f}% of Gross"),
         ('Net Proceeds to Company', proc_bb['net'], '★ Bottom Line'),
     ]
-    proc_df_disp = pd.DataFrame(proc_rows, columns=['Item', 'Amount ($)', 'Notes'])
-    proc_df_disp['Amount ($)'] = proc_df_disp['Amount ($)'].apply(lambda x: f"${x:,.0f}")
+    proc_df_disp = pd.DataFrame(proc_rows, columns=['Item', f'Amount ({curr_sym})', 'Notes'])
+    proc_df_disp['Amount ($)'] = proc_df_disp['Amount ($)'].apply(lambda x: f"{curr_sym}{x:,.0f}")
     st.dataframe(proc_df_disp, use_container_width=True, hide_index=True)
 
     st.markdown(f"""
@@ -1062,7 +1094,7 @@ with tabs[1]:
       <div class="metric-card green">
         <div class="metric-label">Post-Money Market Cap</div>
         <div class="metric-value">{fmt_m(post_bb)}</div>
-        <div class="metric-sub">{fmt_n(pre_ipo_shares)} shares × ${cutoff_price:,.0f}</div>
+        <div class="metric-sub">{fmt_n(pre_ipo_shares)} shares × {fmt_c0(cutoff_price)}</div>
       </div>
       <div class="metric-card">
         <div class="metric-label">Pre-Money Valuation</div>
@@ -1071,8 +1103,8 @@ with tabs[1]:
       </div>
       <div class="metric-card">
         <div class="metric-label">Share Premium</div>
-        <div class="metric-value">${share_prem_bb:,.0f}</div>
-        <div class="metric-sub">{prem_pct_bb:,.0f}% over Face Value (${face_value:,.0f})</div>
+        <div class="metric-value">{fmt_c0(share_prem_bb)}</div>
+        <div class="metric-sub">{prem_pct_bb:,.0f}% over Face Value ({fmt_c0(face_value)})</div>
       </div>
     </div>
     """, unsafe_allow_html=True)
@@ -1087,7 +1119,7 @@ with tabs[2]:
     st.markdown(f"""
     <div class="def-box">
         <strong style="color:#ADD8E6">Fixed Price Method</strong>: The issuer pre-determines a single, non-negotiable offer price
-        of <strong>${fixed_price:,.0f}</strong> before the issue opens. All investors apply at this price.
+        of <strong>{fmt_c0(fixed_price)}</strong> before the issue opens. All investors apply at this price.
         No bidding, no price band — investors simply decide whether to subscribe at the stated price or not.
         The complete prospectus with the fixed price is filed prior to opening.
     </div>
@@ -1110,14 +1142,14 @@ with tabs[2]:
                                    'Allotment Ratio','Refund Amount','Refund %']].copy()
     refund_display['Shares Applied']  = refund_display['Shares Applied'].apply(lambda x: f"{x:,.0f}")
     refund_display['Shares Allotted'] = refund_display['Shares Allotted'].apply(lambda x: f"{x:,.0f}")
-    refund_display['Refund Amount']   = refund_display['Refund Amount'].apply(lambda x: f"${x:,.0f}")
+    refund_display['Refund Amount']   = refund_display['Refund Amount'].apply(lambda x: f"{curr_sym}{x:,.0f}")
     st.dataframe(refund_display, use_container_width=True, hide_index=True)
 
     st.markdown(f"""
     <div class="warn-box">
         <strong>⚠ Refund Summary</strong><br>
-        Total Application Money: <strong>${total_app_money_fp:,.0f}</strong> &nbsp;|&nbsp;
-        Total Refund: <strong>${total_refund_fp:,.0f}</strong> &nbsp;|&nbsp;
+        Total Application Money: <strong>{fmt_c0(total_app_money_fp)}</strong> &nbsp;|&nbsp;
+        Total Refund: <strong>{fmt_c0(total_refund_fp)}</strong> &nbsp;|&nbsp;
         Refund Rate: <strong>{refund_pct_fp:.1f}%</strong> of application money locked up
         until ASBA deblocking. Under traditional (pre-ASBA) process, this represented a massive
         short-term capital constraint for applicants.
@@ -1186,7 +1218,7 @@ with tabs[2]:
     st.markdown('<div class="section-header" style="font-size:1rem">💰 IPO Proceeds Statement</div>', unsafe_allow_html=True)
 
     proc_rows_fp = [
-        ('Gross Proceeds', proc_fp['gross'], f"{fmt_n(ipo_shares)} × ${fixed_price:,.0f}"),
+        ('Gross Proceeds', proc_fp['gross'], f"{fmt_n(ipo_shares)} × {fmt_c0(fixed_price)}"),
         ('Less: Underwriting Fees', -proc_fp['uw_fee'], f"{underwriting_pct}% of Gross"),
         ('Less: Legal & Regulatory', -proc_fp['legal'], 'Fixed Cost'),
         ('Less: Marketing & Roadshow', -proc_fp['mktg'], 'Fixed Cost'),
@@ -1196,8 +1228,8 @@ with tabs[2]:
         ('Total Application Money', total_app_money_fp, 'Before allotment'),
         ('Total Refunds', -total_refund_fp, f"{refund_pct_fp:.2f}% of application money"),
     ]
-    proc_df_fp_disp = pd.DataFrame(proc_rows_fp, columns=['Item', 'Amount ($)', 'Notes'])
-    proc_df_fp_disp['Amount ($)'] = proc_df_fp_disp['Amount ($)'].apply(lambda x: f"${x:,.0f}")
+    proc_df_fp_disp = pd.DataFrame(proc_rows_fp, columns=['Item', f'Amount ({curr_sym})', 'Notes'])
+    proc_df_fp_disp['Amount ($)'] = proc_df_fp_disp['Amount ($)'].apply(lambda x: f"{curr_sym}{x:,.0f}")
     st.dataframe(proc_df_fp_disp, use_container_width=True, hide_index=True)
 
     st.markdown(f"""
@@ -1205,7 +1237,7 @@ with tabs[2]:
       <div class="metric-card blue">
         <div class="metric-label">Post-Money Market Cap</div>
         <div class="metric-value">{fmt_m(post_fp)}</div>
-        <div class="metric-sub">{fmt_n(pre_ipo_shares)} shares × ${fixed_price:,.0f}</div>
+        <div class="metric-sub">{fmt_n(pre_ipo_shares)} shares × {fmt_c0(fixed_price)}</div>
       </div>
       <div class="metric-card">
         <div class="metric-label">Pre-Money Valuation</div>
@@ -1214,7 +1246,7 @@ with tabs[2]:
       </div>
       <div class="metric-card">
         <div class="metric-label">Share Premium</div>
-        <div class="metric-value">${share_prem_fp:,.0f}</div>
+        <div class="metric-value">{fmt_c0(share_prem_fp)}</div>
         <div class="metric-sub">{prem_pct_fp:,.0f}% over Face Value</div>
       </div>
     </div>
@@ -1236,8 +1268,8 @@ with tabs[3]:
     <div class="metric-row">
       <div class="metric-card green">
         <div class="metric-label">Price Advantage (BB)</div>
-        <div class="metric-value">+${diff_price:,.0f}</div>
-        <div class="metric-sub">Cut-off ${cutoff_price:,.0f} vs Fixed ${fixed_price:,.0f}</div>
+        <div class="metric-value">+{fmt_c0(diff_price)}</div>
+        <div class="metric-sub">Cut-off {fmt_c0(cutoff_price)} vs Fixed {fmt_c0(fixed_price)}</div>
       </div>
       <div class="metric-card green">
         <div class="metric-label">Gross Proceeds Advantage</div>
@@ -1271,8 +1303,8 @@ with tabs[3]:
             '─── Valuation ───', 'Post-Money Market Cap', 'Pre-Money Valuation',
         ],
         'Book Building': [
-            f'${cutoff_price:,.0f}', f'${floor_price:,.0f}–${cap_price:,.0f}', f'${wabp:,.2f}',
-            f'${face_value:,.0f}', f'${share_prem_bb:,.0f}', f'{prem_pct_bb:,.0f}%',
+            fmt_c0(cutoff_price), f'{fmt_c0(floor_price)}–{fmt_c0(cap_price)}', fmt_c(wabp),
+            fmt_c0(face_value), fmt_c0(share_prem_bb), f'{prem_pct_bb:,.0f}%',
             '', fmt_n(ipo_shares), fmt_n(int(total_demand_bb)),
             f'{overall_sub_bb:.2f}x', fmt_n(total_bidders_bb),
             '', fmt_m(proc_bb['gross']), fmt_m(proc_bb['total_cost']),
@@ -1280,8 +1312,8 @@ with tabs[3]:
             '', fmt_m(post_bb), fmt_m(pre_bb),
         ],
         'Fixed Price': [
-            f'${fixed_price:,.0f}', f'Fixed @ ${fixed_price:,.0f}', '—',
-            f'${face_value:,.0f}', f'${share_prem_fp:,.0f}', f'{prem_pct_fp:,.0f}%',
+            fmt_c0(fixed_price), f'Fixed @ {fmt_c0(fixed_price)}', '—',
+            fmt_c0(face_value), fmt_c0(share_prem_fp), f'{prem_pct_fp:,.0f}%',
             '', fmt_n(ipo_shares), fmt_n(int(alloc_fp_df['Shares Applied'].sum())),
             f'{total_sub_fp:.2f}x', fmt_n(int(alloc_fp_df['Applications'].sum())),
             '', fmt_m(proc_fp['gross']), fmt_m(proc_fp['total_cost']),
@@ -1377,14 +1409,14 @@ with tabs[3]:
             x=labels, y=values,
             marker_color=colors_bar,
             marker_line=dict(color='rgba(255,255,255,0.1)', width=0.5),
-            text=[f'${v:.2f}B' for v in values],
+            text=[f'{curr_sym}{v:.2f}B' for v in values],
             textposition='outside',
             textfont=dict(color='#e6f1ff', size=10),
-            hovertemplate='%{x}: $%{y:.3f}B<extra></extra>'
+            hovertemplate=f'%{{x}}: {curr_sym}%{{y:.3f}}B<extra></extra>'
         ))
         fig_bar.update_layout(**PLOT_LAYOUT,
             title='Proceeds Breakdown — Both Methods ($B)',
-            yaxis_title='Amount ($B)', height=360)
+            yaxis_title=f"Amount ({curr_sym}B)", height=360)
         st.plotly_chart(fig_bar, use_container_width=True)
 
 
@@ -1397,12 +1429,12 @@ with tabs[4]:
     formulas = [
         ("1. Weighted Average Bid Price (WABP)",
          "WABP = Σ(Pᵢ × Qᵢ) ÷ Σ(Qᵢ)\nwhere Pᵢ = Bid Price, Qᵢ = Shares Demanded",
-         f"Excel: =SUMPRODUCT(BidPrices, SharesDemanded) / SUM(SharesDemanded)\nResult: ${wabp:,.2f}",
+         f"Excel: =SUMPRODUCT(BidPrices, SharesDemanded) / SUM(SharesDemanded)\nResult: {fmt_c(wabp)}",
          "Volume-weighted average of investor bids — the 'centre of gravity' of demand"),
 
         ("2. Cut-Off Price (Algorithmic)",
          "P* = max(Pᵢ) such that Σ(Qⱼ for Pⱼ ≥ Pᵢ) ≥ Shares Offered\n(First price from top where cumulative demand ≥ IPO supply)",
-         f"Excel: =INDEX(BidPrices, MATCH(1,(CumulativeDemand>=SharesOffered)*1,0))\nResult: ${cutoff_price:,.0f}",
+         f"Excel: =INDEX(BidPrices, MATCH(1,(CumulativeDemand>=SharesOffered)*1,0))\nResult: {fmt_c0(cutoff_price)}",
          "Highest price at which the issue can be fully subscribed"),
 
         ("3. Subscription Multiple",
@@ -1417,7 +1449,7 @@ with tabs[4]:
 
         ("5. Gross Proceeds",
          "Gross Proceeds = Shares Offered × Issue Price",
-         f"BB: {fmt_n(ipo_shares)} × ${cutoff_price:,.0f} = {fmt_m(proc_bb['gross'])}\nFP: {fmt_n(ipo_shares)} × ${fixed_price:,.0f} = {fmt_m(proc_fp['gross'])}",
+         f"BB: {fmt_n(ipo_shares)} × {fmt_c0(cutoff_price)} = {fmt_m(proc_bb['gross'])}\nFP: {fmt_n(ipo_shares)} × {fmt_c0(fixed_price)} = {fmt_m(proc_fp['gross'])}",
          "Total cash raised before deducting issuance costs"),
 
         ("6. Net Proceeds",
@@ -1427,7 +1459,7 @@ with tabs[4]:
 
         ("7. Post-Money Market Capitalization",
          "Post-Money Cap = Total Pre-IPO Shares Outstanding × Issue Price\n(Uses ALL shares, not just IPO shares)",
-         f"BB: {fmt_n(pre_ipo_shares)} × ${cutoff_price:,.0f} = {fmt_m(post_bb)}\nFP: {fmt_n(pre_ipo_shares)} × ${fixed_price:,.0f} = {fmt_m(post_fp)}",
+         f"BB: {fmt_n(pre_ipo_shares)} × {fmt_c0(cutoff_price)} = {fmt_m(post_bb)}\nFP: {fmt_n(pre_ipo_shares)} × {fmt_c0(fixed_price)} = {fmt_m(post_fp)}",
          "Market value of the entire company at IPO price"),
 
         ("8. Pre-Money Valuation",
@@ -1437,7 +1469,7 @@ with tabs[4]:
 
         ("9. Share Premium",
          "Premium = Issue Price − Face Value\nPremium % = (Issue Price − Face Value) ÷ Face Value × 100",
-         f"BB: ${cutoff_price:,.0f} − ${face_value:,.0f} = ${share_prem_bb:,.0f} ({prem_pct_bb:,.0f}%)\nFP: ${fixed_price:,.0f} − ${face_value:,.0f} = ${share_prem_fp:,.0f} ({prem_pct_fp:,.0f}%)",
+         f"BB: {fmt_c0(cutoff_price)} − {fmt_c0(face_value)} = {fmt_c0(share_prem_bb)} ({prem_pct_bb:,.0f}%)\nFP: {fmt_c0(fixed_price)} − {fmt_c0(face_value)} = {fmt_c0(share_prem_fp)} ({prem_pct_fp:,.0f}%)",
          "Credited to Securities Premium Reserve on the balance sheet"),
 
         ("10. Refund Amount (Fixed Price)",
